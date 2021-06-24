@@ -13,121 +13,140 @@ namespace PTTParser
 {
     class Program
     {
- 
+        private static FtpClientPool p = new FtpClientPool();
 
         static void Main(string[] args)
         {
-           
+
+            // Practice 2
+
+            FtpClient client =  p.borrowObject();
 
 
-            Facotry pool = new Facotry();
-
-
-            for (int i = 0; i < 10; i++)
-            {
-                var conn = pool.GetFtpConnection();
- 
-
-                var client = conn.ftpClie;
-                client.Connect();
+            Parallel.For(0, 20, i => {
                 if (client.IsConnected)
                 {
-                    Console.WriteLine($"client is connect = {conn.Name} ");
-                    if (client.FileExists("/test/test.txt")) 
+                    if (client.FileExists("/test/test.txt"))
                     {
-                        Console.WriteLine(" FileExists ");
-                        pool.RecycleObject(conn);
+                        Console.WriteLine("FileExists ");
+
                     }
                 }
                 else
                 {
-                    Console.WriteLine(0);
+                    Console.WriteLine("client not connect");
                 }
 
-            }
 
-
-
-            Console.Read();
-
-        }
- 
-    }
-
-
-    public class Facotry
-    {
-        private static int _PoolMaxSize = 3;
-
-        private static readonly Queue objPool = new Queue(_PoolMaxSize);
-
-        public FtpFactory GetFtpConnection()
-        {
-            FtpFactory obj;
-            if (FtpFactory.ObjectCounter >= _PoolMaxSize &&  objPool.Count > 0)
-            {
-                Console.WriteLine("old object");
-                obj = RetrieveFromPool();
-            }
-            else
-            {
-                Console.WriteLine("new object");
-                obj = GetNewFtpObj();
-            }
-            return obj;
-        }
-
-        private FtpFactory GetNewFtpObj()
-        {
-            FtpFactory fa = new FtpFactory();
-            objPool.Enqueue(fa);
-            return fa;
-        }
-
-        public void RecycleObject(FtpFactory fa)
-        {
-            objPool.Enqueue(fa);
-        }
-
-        protected FtpFactory RetrieveFromPool()
-        {
-            FtpFactory stu;
-            if (objPool.Count > 0)
-            {
-                stu = (FtpFactory)objPool.Dequeue();
-                FtpFactory.ObjectCounter--;
-            }
-            else
-            {
-                stu = new FtpFactory();
-            }
-            return stu;
-        }
-    }
-
-    public class FtpFactory
-    {
-
-         public static int ObjectCounter = 0;
-        FtpClient client = null;
-        public FtpFactory()
-        {
-             ++ObjectCounter;
-            client = new FtpClient("127.0.0.1");
-            client.Credentials = new NetworkCredential("ftpuser", "ftpuser");
+            });
             
+             
+
+           var poosize = p.PoolSize();
+
+            if (p.PoolSize() > 0)
+            {
+                p.disposePool();
+            }
+
+
+            Console.WriteLine("Finish");
+            //Console.Read();
+
+        }
+ 
+    }
+
+
+
+    public class FtpClientPool
+    {
+        private static int defaultPoolSize = 2;
+        private static readonly ConcurrentBag<FtpClient> objPool = new ConcurrentBag<FtpClient>();
+
+        private static FtpClientFactory factory = new FtpClientFactory();
+
+        public FtpClientPool()
+        {
+            initPool();
         }
 
-        public FtpClient ftpClie
+        public int PoolSize()
         {
-            get { return client; }
+            return objPool.Count;
         }
 
-        public string Name
+        public void initPool()
         {
-            get { return ObjectCounter.ToString(); }
+            for(int i=0; i< defaultPoolSize; i++)
+            {
+                FtpClient client = new FtpClient("127.0.0.1", "ftpuser", "ftpuser");
+                client.Connect();
+                objPool.Add(client);
+            }
+            Console.WriteLine("Initial pool size = "+objPool.Count);
+        }
 
+        public void disposePool()
+        {
+            while (objPool.Count > 0)
+            {
+                FtpClient client;
+                if(objPool.TryTake(out client))
+                {
+                    client.Disconnect();
+                    client.Dispose();
+                }
+            }
+        }
+
+        public FtpClient borrowObject()
+        {
+            FtpClient client;
+
+            if(objPool.TryPeek(out client))
+            {
+                if (!client.IsConnected)
+                {
+                    factory.destoryObject(client);
+                    client = factory.makeObject();
+                    objPool.Add(client);
+                }
+            }
+            return client;
+        }
+
+    }
+
+    public class FtpClientFactory
+    {
+        public FtpClient makeObject()
+        {
+            FtpClient ftpClient = new FtpClient("127.0.0.1", "ftpuser", "ftpuser");
+            //ftpClient.Connect();
+            ftpClient.Connect();
+            return ftpClient;
+        }
+
+        public void destoryObject(FtpClient ftpClient)
+        {
+            try
+            {
+                if (ftpClient.IsConnected)
+                {
+                    ftpClient.Disconnect();
+                }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            finally
+            {
+                ftpClient.Dispose();
+            }
         }
     }
- 
+
+
 }

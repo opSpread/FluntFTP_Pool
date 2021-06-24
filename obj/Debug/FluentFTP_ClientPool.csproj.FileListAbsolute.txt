@@ -1,0 +1,10 @@
+C:\Users\op399\source\repos\PTTParser\PTTParser\bin\Debug\PTTParser.exe.config
+C:\Users\op399\source\repos\PTTParser\PTTParser\bin\Debug\PTTParser.exe
+C:\Users\op399\source\repos\PTTParser\PTTParser\bin\Debug\PTTParser.pdb
+C:\Users\op399\source\repos\PTTParser\PTTParser\bin\Debug\FluentFTP.dll
+C:\Users\op399\source\repos\PTTParser\PTTParser\bin\Debug\FluentFTP.xml
+C:\Users\op399\source\repos\PTTParser\PTTParser\obj\Debug\FluentFTP_ClientPool.csprojAssemblyReference.cache
+C:\Users\op399\source\repos\PTTParser\PTTParser\obj\Debug\FluentFTP_ClientPool.csproj.CoreCompileInputs.cache
+C:\Users\op399\source\repos\PTTParser\PTTParser\obj\Debug\FluentFTP_ClientPool.csproj.CopyComplete
+C:\Users\op399\source\repos\PTTParser\PTTParser\obj\Debug\PTTParser.exe
+C:\Users\op399\source\repos\PTTParser\PTTParser\obj\Debug\PTTParser.pdb
